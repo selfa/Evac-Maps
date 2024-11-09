@@ -190,6 +190,10 @@ def remove_draft_entry():
     conn.close()
     return jsonify({'status': 'Entry removed'})
 
+@app.route('/api/test', methods=['GET'])
+def test_route():
+    return jsonify({"status": "API is reachable"})
+
 
 # Run the Flask app
 if __name__ == '__main__':
