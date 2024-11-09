@@ -11,7 +11,7 @@ DRAFT_DATABASE = 'evac-maps/app_state.db'
 # Function to initialize the evac map database (markers.db)
 def init_evac_db():
     if not os.path.exists(EVAC_DATABASE):
-        conn = sqlite3.connect(EVAC_DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE, uri=True)
         c = conn.cursor()
         c.execute('''
             CREATE TABLE IF NOT EXISTS markers (
@@ -27,7 +27,7 @@ def init_evac_db():
 
 # Function to initialize the draft map database (app_state.db)
 def init_draft_db():
-    conn = sqlite3.connect(DRAFT_DATABASE)
+    conn = sqlite3.connect(DRAFT_DATABASE, uri=True)
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS state (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,7 +62,7 @@ def draft_map():
 def add_marker():
     try:
         data = request.json
-        conn = sqlite3.connect(EVAC_DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE, uri=True)
         c = conn.cursor()
         c.execute('''
             INSERT INTO markers (lat, lng, color, youtube_link) 
@@ -78,7 +78,7 @@ def add_marker():
 @app.route('/get_markers', methods=['GET'])
 def get_markers():
     try:
-        conn = sqlite3.connect(EVAC_DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE, uri=True)
         c = conn.cursor()
         c.execute('SELECT lat, lng, color, youtube_link FROM markers')
         markers = [{'lat': row[0], 'lng': row[1], 'color': row[2], 'youtube_link': row[3]} for row in c.fetchall()]
@@ -95,7 +95,7 @@ def delete_marker():
         lat = data.get('lat')
         lng = data.get('lng')
 
-        conn = sqlite3.connect(EVAC_DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE, uri=True)
         c = conn.cursor()
         c.execute('''
             DELETE FROM markers 
