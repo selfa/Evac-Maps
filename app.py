@@ -1,19 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, jsonify
 import sqlite3
 import os
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
-app.secret_key = 'supersecretkey'  # Change this to a random, secure key for production use
 
-# Use absolute path for the database to ensure it is found regardless of the working directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, 'markers.db')
-
-# Hardcoded users (username: password)
-USERS = {
-    'user1': 'password1',
-    'user2': 'password2'
-}
+# Path to the SQLite database
+DATABASE = 'markers.db'
 
 # Function to initialize the database
 def init_db():
@@ -35,55 +27,17 @@ def init_db():
     else:
         print("Database already exists.")
 
-# Route to handle login
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        # Check if the username and password are correct
-        if username in USERS and USERS[username] == password:
-            session['username'] = username  # Store the username in the session
-            return redirect(url_for('select_app'))
-        else:
-            return render_template('login.html', error="Invalid username or password")
-
-    return render_template('login.html')
-
-# Route to handle logout
-@app.route('/logout')
-def logout():
-    session.pop('username', None)
-    return redirect(url_for('login'))
-
-# Route to select which app to access
-@app.route('/select_app')
-def select_app():
-    # Protect this route to require login
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
-    return render_template('select_app.html')
-
-# Home route to render the map (protected route)
+# Home route to render the map
 @app.route('/')
 def index():
-    # Protect this route to require login
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     return render_template('index.html')
 
-# Route to add a new marker (protected route)
+# Route to add a new marker
 @app.route('/add_marker', methods=['POST'])
 def add_marker():
-    # Protect this route to require login
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     try:
         data = request.json
+        print("Received marker data:", data)  # Print incoming data to check
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
         c.execute('''
@@ -97,31 +51,24 @@ def add_marker():
         print(f"Error in /add_marker: {e}")
         return jsonify({'status': 'Error adding marker', 'error': str(e)})
 
-# Route to retrieve all markers (protected route)
+# Route to retrieve all markers
 @app.route('/get_markers', methods=['GET'])
 def get_markers():
-    # Protect this route to require login
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     try:
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
         c.execute('SELECT lat, lng, color, youtube_link FROM markers')
         markers = [{'lat': row[0], 'lng': row[1], 'color': row[2], 'youtube_link': row[3]} for row in c.fetchall()]
         conn.close()
+        print("Retrieved markers:", markers)  # Print retrieved markers to check
         return jsonify(markers)
     except Exception as e:
         print(f"Error in /get_markers: {e}")
         return jsonify({'status': 'Error retrieving markers', 'error': str(e)})
 
-# Route to delete a marker (protected route)
+# Route to delete a marker
 @app.route('/delete_marker', methods=['POST'])
 def delete_marker():
-    # Protect this route to require login
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     try:
         data = request.json
         lat = data.get('lat')
