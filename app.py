@@ -1,12 +1,11 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
 import os
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 
-# Use absolute path for the database to ensure it is found regardless of the working directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, 'markers.db')
+# Path to the SQLite database
+DATABASE = 'markers.db'
 
 # Function to initialize the database
 def init_db():
@@ -24,12 +23,14 @@ def init_db():
         ''')
         conn.commit()
         conn.close()
-        print("Database initialized successfully.")
-    else:
-        print("Database already exists.")
 
-# Home route to render the map
+# Front page route
 @app.route('/')
+def front_page():
+    return render_template('front_page.html')
+
+# Route to the evacuation map app
+@app.route('/evac-map')
 def index():
     return render_template('index.html')
 
@@ -48,7 +49,6 @@ def add_marker():
         conn.close()
         return jsonify({'status': 'Marker added successfully'})
     except Exception as e:
-        print(f"Error in /add_marker: {e}")
         return jsonify({'status': 'Error adding marker', 'error': str(e)})
 
 # Route to retrieve all markers
@@ -62,7 +62,6 @@ def get_markers():
         conn.close()
         return jsonify(markers)
     except Exception as e:
-        print(f"Error in /get_markers: {e}")
         return jsonify({'status': 'Error retrieving markers', 'error': str(e)})
 
 # Route to delete a marker
@@ -84,7 +83,6 @@ def delete_marker():
 
         return jsonify({'status': 'Marker deleted successfully'})
     except Exception as e:
-        print(f"Error in /delete_marker: {e}")
         return jsonify({'status': 'Error deleting marker', 'error': str(e)})
 
 # Run the Flask app
