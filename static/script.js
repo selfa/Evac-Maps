@@ -39,6 +39,24 @@ document.addEventListener("DOMContentLoaded", () => {
         edistrict: document.getElementById("edistrict-pois")
     };
 
+// Import Firebase modules if using Firebase v9 (modular)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCe7SKPDr0S58R50DsD2erDgNg6SuoUKz4",
+    authDomain: "draft-map-7aaa2.firebaseapp.com",
+    projectId: "draft-map-7aaa2",
+    storageBucket: "draft-map-7aaa2.firebasestorage.app",
+    messagingSenderId: "603958099186",
+    appId: "1:603958099186:web:5783435c75c57114faa46b"
+};
+
+// Initialize Firebase and Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
     setupEventListeners();
     loadInitialState();
 
