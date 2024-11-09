@@ -3,6 +3,18 @@ let loggingEnabled = false;
 let orderCount = 1;
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (!window.db) {
+        console.error("Firebase is not initialized yet.");
+        return;
+    }
+
+    // Now proceed with setup
+    setupEventListeners();
+    loadInitialState();
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
     const poiNames = {
         stormpoint: [
             "Checkpoint", "Trident", "North Pad", "Downed Beast", "The Mill",
