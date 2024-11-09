@@ -20,23 +20,11 @@
     
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
-    
-        // Callback to load `script.js` only after Firebase initialization is complete
-        function loadScript() {
-            const script = document.createElement('script');
-            script.src = "/static/script.js";
-            script.type = "module";
-            document.body.appendChild(script);
-            console.log("Firebase initialized, script.js loaded after Firebase setup");
-        }
-    
-        // Call the callback function to load `script.js`
-        loadScript();
+
+        // Dispatch a custom event to signal that Firebase is ready
+        document.dispatchEvent(new Event('firebaseReady'));
+        console.log("Firebase initialized, 'firebaseReady' event dispatched");
     </script>
-    
-
-
-
     </head>
 <body>
     <div class="container">
@@ -182,5 +170,6 @@
             </table>
         </div>
     </div>
+    <script type="module" src="/static/script.js"></script>
 </body>
 </html>

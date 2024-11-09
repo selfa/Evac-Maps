@@ -1,20 +1,11 @@
-let currentMap = "stormpoint";
-let loggingEnabled = false;
-let orderCount = 1;
+// Wait for the `firebaseReady` event to ensure Firebase is initialized
+document.addEventListener("firebaseReady", () => {
+    console.log("Firebase is ready, proceeding with script.js logic.");
 
-document.addEventListener("DOMContentLoaded", () => {
-    if (!window.db) {
-        console.error("Firebase is not initialized yet.");
-        return;
-    }
+    let currentMap = "stormpoint";
+    let loggingEnabled = false;
+    let orderCount = 1;
 
-    // Now proceed with setup
-    setupEventListeners();
-    loadInitialState();
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
     const poiNames = {
         stormpoint: [
             "Checkpoint", "Trident", "North Pad", "Downed Beast", "The Mill",
@@ -188,35 +179,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function removePOI() {
-        const poiList = document.getElementById("poiList");
-        const poiNumber = poiList.value;
-    
-        if (!poiNumber) {
-            alert("Please select a POI to remove.");
-            return;
-        }
-    
-        const poiElement = document.getElementById(`${currentMap}-poi-${poiNumber}`);
-        if (poiElement) {
-            poiElement.style.backgroundColor = "";
-            poiElement.innerHTML = "";
-            
-            const poiTable = document.querySelector("#poiTable tbody");
-            const rows = Array.from(poiTable.rows);
-            const rowToRemove = rows.find(row => row.getAttribute("data-poi") === `${currentMap}-poi-${poiNumber}`);
-            if (rowToRemove) poiTable.deleteRow(rowToRemove.rowIndex);
-    
-            localStorage.removeItem(`draft-${currentMap}-poi-${poiNumber}`);
-            populatePOIList();
-            saveDraftTableState();
-            savePOIState();
-        }
-    }
-    
-
     function pickPOI() {
         const teamName = document.getElementById("teamName").value;
+        const poiList = document.getElementById("poiList");
         const poiNumber = poiList.value;
 
         if (!teamName || !poiNumber) {
@@ -245,6 +210,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
         saveDraftTableState();
         savePOIState();
+    }
+
+    function removePOI() {
+        const poiList = document.getElementById("poiList");
+        const poiNumber = poiList.value;
+    
+        if (!poiNumber) {
+            alert("Please select a POI to remove.");
+            return;
+        }
+    
+        const poiElement = document.getElementById(`${currentMap}-poi-${poiNumber}`);
+        if (poiElement) {
+            poiElement.style.backgroundColor = "";
+            poiElement.innerHTML = "";
+            
+            const poiTable = document.querySelector("#poiTable tbody");
+            const rows = Array.from(poiTable.rows);
+            const rowToRemove = rows.find(row => row.getAttribute("data-poi") === `${currentMap}-poi-${poiNumber}`);
+            if (rowToRemove) poiTable.deleteRow(rowToRemove.rowIndex);
+    
+            localStorage.removeItem(`draft-${currentMap}-poi-${poiNumber}`);
+            populatePOIList();
+            saveDraftTableState();
+            savePOIState();
+        }
     }
 
     function resetPOIState() {
