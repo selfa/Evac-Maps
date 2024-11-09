@@ -3,7 +3,7 @@ import sqlite3
 import os
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
-app.secret_key = 'supersecretkey'  # You should change this to a random secret key
+app.secret_key = 'supersecretkey'  # Change this to a random, secure key for production use
 
 # Use absolute path for the database to ensure it is found regardless of the working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -60,6 +60,7 @@ def logout():
 # Route to select which app to access
 @app.route('/select_app')
 def select_app():
+    # Protect this route to require login
     if 'username' not in session:
         return redirect(url_for('login'))
 
@@ -68,14 +69,19 @@ def select_app():
 # Home route to render the map (protected route)
 @app.route('/')
 def index():
+    # Protect this route to require login
     if 'username' not in session:
         return redirect(url_for('login'))
 
     return render_template('index.html')
 
-# Route to add a new marker
+# Route to add a new marker (protected route)
 @app.route('/add_marker', methods=['POST'])
 def add_marker():
+    # Protect this route to require login
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
     try:
         data = request.json
         conn = sqlite3.connect(DATABASE)
@@ -91,9 +97,13 @@ def add_marker():
         print(f"Error in /add_marker: {e}")
         return jsonify({'status': 'Error adding marker', 'error': str(e)})
 
-# Route to retrieve all markers
+# Route to retrieve all markers (protected route)
 @app.route('/get_markers', methods=['GET'])
 def get_markers():
+    # Protect this route to require login
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
     try:
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
@@ -105,9 +115,13 @@ def get_markers():
         print(f"Error in /get_markers: {e}")
         return jsonify({'status': 'Error retrieving markers', 'error': str(e)})
 
-# Route to delete a marker
+# Route to delete a marker (protected route)
 @app.route('/delete_marker', methods=['POST'])
 def delete_marker():
+    # Protect this route to require login
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
     try:
         data = request.json
         lat = data.get('lat')
