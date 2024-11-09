@@ -1,21 +1,3 @@
-// Import Firebase and Firestore
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDoc, updateDoc, deleteDoc, doc, setDoc, query, getDocs } from "firebase/firestore";
-
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyCe7SKPDr0S58R50DsD2erDgNg6SuoUKz4",
-    authDomain: "draft-map-7aaa2.firebaseapp.com",
-    projectId: "draft-map-7aaa2",
-    storageBucket: "draft-map-7aaa2.firebasestorage.app",
-    messagingSenderId: "603958099186",
-    appId: "1:603958099186:web:5783435c75c57114faa46b"
-};
-
-// Initialize Firebase and Firestore
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
 let currentMap = "stormpoint";
 let loggingEnabled = false;
 let orderCount = 1;
@@ -52,12 +34,6 @@ document.addEventListener("DOMContentLoaded", function () {
         edistrict: document.getElementById("map3")
     };
 
-    const pois = {
-        stormpoint: document.getElementById("stormpoint-pois"),
-        worldsedge: document.getElementById("worldsedge-pois"),
-        edistrict: document.getElementById("edistrict-pois")
-    };
-
     setupEventListeners();
     loadCurrentMap();
     populatePOIList();
@@ -83,46 +59,42 @@ document.addEventListener("DOMContentLoaded", function () {
             let option = document.createElement("option");
             option.value = index + 1;
             option.text = name + " #" + (index + 1);
+
+            const draftTableState = JSON.parse(localStorage.getItem('draftTableState')) || [];
+            if (draftTableState.some(entry => entry.dataPoi === `${currentMap}-poi-${index + 1}`)) {
+                option.style.textDecoration = "line-through";
+                option.disabled = true;
+            }
             poiList.appendChild(option);
         });
     }
 
-    async function switchMap(mapId) {
+    function switchMap(mapId) {
         currentMap = mapId;
 
-        // Hide all maps and POIs
         Object.values(maps).forEach(map => map.style.display = "none");
-        Object.values(pois).forEach(poi => poi.style.display = "none");
-
-        // Show selected map and POIs
         maps[currentMap].style.display = "block";
-        pois[currentMap].style.display = "block";
 
         populatePOIList();
-        await saveCurrentMap();
+        saveCurrentMap();
         loadPOIState();
     }
 
-    async function saveCurrentMap() {
-        try {
-            await setDoc(doc(db, "draftState", "currentMap"), { currentMap });
-        } catch (error) {
-            console.error("Error saving current map: ", error);
-        }
+    function saveCurrentMap() {
+        fetch('/api/set_current_map', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentMap: currentMap })
+        });
     }
 
-    async function loadCurrentMap() {
-        try {
-            const docSnap = await getDoc(doc(db, "draftState", "currentMap"));
-            if (docSnap.exists()) {
-                currentMap = docSnap.data().currentMap;
+    function loadCurrentMap() {
+        fetch('/api/get_current_map')
+            .then(response => response.json())
+            .then(data => {
+                currentMap = data.currentMap;
                 switchMap(currentMap);
-            } else {
-                switchMap('stormpoint');
-            }
-        } catch (error) {
-            console.error("Error loading current map: ", error);
-        }
+            });
     }
 
     function toggleLogging() {
@@ -141,63 +113,66 @@ document.addEventListener("DOMContentLoaded", function () {
         alert(`Top: ${y}px; Left: ${x}px;`);
     }
 
-    async function pickPOI() {
+    function pickPOI() {
         const teamName = document.getElementById("teamName").value;
         const poiNumber = poiList.value;
 
-        if (!poiNumber) {
-            alert("Please select a POI.");
+        if (!poiNumber || !teamName) {
+            alert("Please enter a team name and select a POI.");
             return;
         }
 
         const poiElementId = `${currentMap}-poi-${poiNumber}`;
-        try {
-            const docRef = await addDoc(collection(db, "poiPicks"), {
-                poiId: poiElementId,
-                teamName,
-                map: currentMap,
-                order: orderCount++
-            });
-            console.log("POI picked with ID: ", docRef.id);
-            document.getElementById("teamName").value = "";
-        } catch (error) {
-            console.error("Error picking POI: ", error);
-        }
+
+        fetch('/api/save_draft_table', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ draftTable: [{ poi_id: poiNumber, teamName: teamName, pickOrder: orderCount++ }] })
+        }).then(() => {
+            loadDraftTableState();
+            populatePOIList();
+        });
     }
 
-    async function removePOI() {
-        const poiNumber = poiList.value;
-        if (!poiNumber) {
-            alert("Please select a POI to remove.");
-            return;
-        }
-
-        const poiElementId = `${currentMap}-poi-${poiNumber}`;
-        try {
-            const poiQuery = query(collection(db, "poiPicks"), where("poiId", "==", poiElementId));
-            const poiDocs = await getDocs(poiQuery);
-            poiDocs.forEach(async (doc) => {
-                await deleteDoc(doc.ref);
-            });
-            console.log("POI removed: ", poiElementId);
-        } catch (error) {
-            console.error("Error removing POI: ", error);
-        }
-    }
-
-    async function resetPOIState() {
-        if (confirm("Are you sure you want to reset everything? This action cannot be undone.")) {
-            try {
-                const poiCollection = collection(db, "poiPicks");
-                const poiDocs = await getDocs(poiCollection);
-                poiDocs.forEach(async (doc) => {
-                    await deleteDoc(doc.ref);
+    function loadDraftTableState() {
+        fetch('/api/get_draft_table')
+            .then(response => response.json())
+            .then(draftTable => {
+                const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
+                poiTable.innerHTML = '';
+                draftTable.forEach(entry => {
+                    const newRow = poiTable.insertRow();
+                    newRow.insertCell(0).innerText = poiList.options[entry.poi_id - 1].text;
+                    newRow.insertCell(1).innerText = entry.teamName;
+                    newRow.insertCell(2).innerText = entry.pickOrder;
                 });
-                console.log("All POI states have been reset.");
-            } catch (error) {
-                console.error("Error resetting POI states: ", error);
-            }
-        }
+            });
     }
 
+    function loadPOIState() {
+        fetch('/api/get_poi_state')
+            .then(response => response.json())
+            .then(poiState => {
+                poiState.forEach(entry => {
+                    const poiElement = document.getElementById(`${currentMap}-poi-${entry.poi_id}`);
+                    if (poiElement) {
+                        poiElement.style.backgroundColor = entry.state === "picked" ? "red" : "";
+                    }
+                });
+            });
+    }
+
+    function resetPOIState() {
+        if (confirm("Are you sure you want to reset everything? This action cannot be undone.")) {
+            fetch('/api/save_poi_state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ poiState: [] })
+            }).then(() => {
+                document.getElementById("poiTable").getElementsByTagName('tbody')[0].innerHTML = '';
+                orderCount = 1;
+                populatePOIList();
+            });
+        }
+    }
 });
