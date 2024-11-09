@@ -233,4 +233,4 @@ if (!poiList) { console.error('Error: POI list element not found.'); return; }
                 });
             })
             .catch(error => console.error('Error loading draft table state:', error));
-    });
+    }
