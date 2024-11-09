@@ -180,6 +180,17 @@ def get_poi_state():
     conn.close()
     return jsonify(poi_state)
 
+@app.route('/api/remove_draft_entry', methods=['POST'])
+def remove_draft_entry():
+    poi_id = request.args.get('poi_id')
+    conn = sqlite3.connect('draft_map.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM drafttable WHERE poi_id = ?", (poi_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'Entry removed'})
+
+
 # Run the Flask app
 if __name__ == '__main__':
     init_evac_db()
