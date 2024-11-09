@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
         Object.values(maps).forEach(map => map.addEventListener("click", logCoordinates));
 
         document.getElementById("pickButton").addEventListener("click", pickPOI);
-        document.getElementById("removeButton").addEventListener("click", removePOI);
+        document.getElementById("removeButton").addEventListener("click", removePOI); // Referencing removePOI
         document.getElementById("toggleLoggingButton").addEventListener("click", toggleLogging);
         document.getElementById("resetButton").addEventListener("click", resetPOIState);
 
@@ -59,22 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
             let option = document.createElement("option");
             option.value = index + 1;
             option.text = name + " #" + (index + 1);
-
-            const draftTableState = JSON.parse(localStorage.getItem('draftTableState')) || [];
-            if (draftTableState.some(entry => entry.dataPoi === `${currentMap}-poi-${index + 1}`)) {
-                option.style.textDecoration = "line-through";
-                option.disabled = true;
-            }
             poiList.appendChild(option);
         });
     }
 
     function switchMap(mapId) {
         currentMap = mapId;
-
         Object.values(maps).forEach(map => map.style.display = "none");
         maps[currentMap].style.display = "block";
-
         populatePOIList();
         saveCurrentMap();
         loadPOIState();
@@ -104,30 +96,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function logCoordinates(event) {
         if (!loggingEnabled) return;
-
         const map = event.currentTarget;
         const rect = map.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-
         alert(`Top: ${y}px; Left: ${x}px;`);
     }
 
     function pickPOI() {
         const teamName = document.getElementById("teamName").value;
         const poiNumber = poiList.value;
-
         if (!poiNumber || !teamName) {
             alert("Please enter a team name and select a POI.");
             return;
         }
-
-        const poiElementId = `${currentMap}-poi-${poiNumber}`;
-
         fetch('/api/save_draft_table', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ draftTable: [{ poi_id: poiNumber, teamName: teamName, pickOrder: orderCount++ }] })
+        }).then(() => {
+            loadDraftTableState();
+            populatePOIList();
+        });
+    }
+
+    function removePOI() {
+        const poiNumber = poiList.value;
+        if (!poiNumber) {
+            alert("Please select a POI to remove.");
+            return;
+        }
+        fetch(`/api/remove_draft_entry?poi_id=${poiNumber}`, {
+            method: 'POST'
         }).then(() => {
             loadDraftTableState();
             populatePOIList();
