@@ -34,6 +34,11 @@ def front_page():
 def index():
     return render_template('index.html')
 
+# Route for the new Draftmap app
+@app.route('/draft-map')
+def draft_map():
+    return render_template('draftmap/draft_index.html')
+
 # Route to add a new marker
 @app.route('/add_marker', methods=['POST'])
 def add_marker():
