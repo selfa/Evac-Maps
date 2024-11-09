@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     const poiList = document.getElementById("poiList");
+if (!poiList) { console.error('Error: POI list element not found.'); return; }
     const maps = {
         stormpoint: document.getElementById("map1"),
         worldsedge: document.getElementById("map2"),
@@ -47,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function() {
     loadPOIState();
 
     function setupEventListeners() {
-        Object.values(maps).forEach(map => map.addEventListener("click", logCoordinates));
+        Object.values(maps).forEach(map => { if (map) map.addEventListener("click", logCoordinates); });
 
         document.getElementById("pickButton").addEventListener("click", pickPOI);
         document.getElementById("removeButton").addEventListener("click", removePOI);
@@ -67,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function() {
             option.text = name + " #" + (index + 1);
 
             // Fetch current draft table state from the backend
-            fetch('/loadDraftTableState')
+            fetch('/loadDraftTableState').catch(error => console.error('Error fetching draft table state:', error))
                 .then(response => response.json())
                 .then(draftTableState => {
                     if (draftTableState.some(entry => entry.dataPoi === `${currentMap}-poi-${index + 1}`)) {
@@ -232,5 +233,4 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
             })
             .catch(error => console.error('Error loading draft table state:', error));
-    }
-});
+    });
