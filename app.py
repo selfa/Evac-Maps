@@ -5,8 +5,8 @@ import os
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 
 # Path to the SQLite database
-EVAC_DATABASE = 'evac-maps/markers.db'
-DRAFT_DATABASE = 'evac-maps/app_state.db'
+EVAC_DATABASE = 'markerss.db'
+DRAFT_DATABASE = 'app_state.db'
 
 # Function to initialize the evac map database (markers.db)
 def init_evac_db():
