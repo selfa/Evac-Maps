@@ -18,10 +18,11 @@
             appId: "1:603958099186:web:5783435c75c57114faa46b"
         };
     
+        // Initialize Firebase and make `db` global
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        window.db = getFirestore(app); // Attach `db` to `window` for global access
     
-        console.log("Firebase initialized from HTML");
+        console.log("Firebase initialized, db is globally available");
     </script>
 
 
