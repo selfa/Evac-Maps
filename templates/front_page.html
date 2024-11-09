@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Hub</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .container {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .buttons {
+            text-align: center;
+        }
+
+        .buttons button {
+            margin: 10px;
+            width: 200px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="buttons">
+            <h1>Select an Application</h1>
+            <button class="btn btn-primary" onclick="location.href='/evac-map'">Evacuation Map App</button>
+            <button class="btn btn-success" onclick="location.href='/app2'">App 2</button>
+            <button class="btn btn-info" onclick="location.href='/app3'">App 3</button>
+        </div>
+    </div>
+</body>
+</html>
