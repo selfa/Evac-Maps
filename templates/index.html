@@ -1,109 +1,129 @@
-<!-- Add/Update button functionality -->
-<script>
-    let map = L.map('map', {
-        crs: L.CRS.Simple,
-        minZoom: -4,
-    });
-
-    const bounds = [[0, 0], [1000, 1000]];
-    const image = L.imageOverlay('{{ url_for("static", filename="Flight_map_Edistrict.png") }}', bounds).addTo(map);
-    map.fitBounds(bounds);
-
-    let addingMarker = false;
-    let removingMarker = false;
-
-    function startAddingMarker() {
-        addingMarker = true;
-        removingMarker = false; 
-        map.on('click', onMapClick);
-    }
-
-    function enableRemoveMarkerMode() {
-        removingMarker = true;
-        addingMarker = false; 
-        map.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker) {
-                layer.on('click', onMarkerClickForRemoval);
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha384-Lb/s5dJ2gYpqQQ5wRLFdAtUyVZ0rE9PEK6LpYbW3O7+mGJ/xjEhtI82jdE+zFJ5n" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha384-J9w/mTxUZsPz8hgXBRuYrNYBp8QlwPBwzUo0Z5rjzYZqJHzrXCBFOk9RQxjIP9y5" crossorigin=""></script>
+    <title>Evacuation Map</title>
+</head>
+<body>
+    <div id="map" style="width: 100%; height: 600px;"></div>
+    <button onclick="startAddingMarker()">Add Marker Mode</button>
+    <button onclick="enableRemoveMarkerMode()">Remove Marker Mode</button>
+    <input type="text" id="youtube-id" placeholder="YouTube Video ID">
+    <select id="button-color">
+        <option value="green">Green</option>
+        <option value="yellow">Yellow</option>
+    </select>
+    <script>
+        // Make sure to initialize the map after loading Leaflet
+        let map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -4,
         });
-    }
 
-    function onMapClick(e) {
-        if (addingMarker) {
-            let color = document.getElementById("button-color").value;
-            let videoId = document.getElementById("youtube-id").value;
+        const bounds = [[0, 0], [1000, 1000]];
+        const image = L.imageOverlay('/static/Flight_map_Edistrict.png', bounds).addTo(map);
+        map.fitBounds(bounds);
 
-            if (videoId) {
-                const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                let marker = L.circleMarker(e.latlng, { color: color, radius: 10 }).addTo(map);
-                marker.bindPopup(`<iframe width="200" height="150" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`);
+        let addingMarker = false;
+        let removingMarker = false;
 
-                fetch('/add_marker', {
+        function startAddingMarker() {
+            addingMarker = true;
+            removingMarker = false; 
+            map.on('click', onMapClick);
+        }
+
+        function enableRemoveMarkerMode() {
+            removingMarker = true;
+            addingMarker = false; 
+            map.eachLayer(layer => {
+                if (layer instanceof L.CircleMarker) {
+                    layer.on('click', onMarkerClickForRemoval);
+                }
+            });
+        }
+
+        function onMapClick(e) {
+            if (addingMarker) {
+                let color = document.getElementById("button-color").value;
+                let videoId = document.getElementById("youtube-id").value;
+
+                if (videoId) {
+                    const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    let marker = L.circleMarker(e.latlng, { color: color, radius: 10 }).addTo(map);
+                    marker.bindPopup(`<iframe width="200" height="150" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`);
+
+                    fetch('/add_marker', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ coords: e.latlng, color: color, youtube_link: videoId })
+                    }).then(response => response.json())
+                      .then(data => {
+                          console.log("Server response:", data);
+                          loadMarkers(); // Reload markers from backend after successful addition
+                      }).catch(error => {
+                          console.error("Error sending marker data:", error);
+                      });
+
+                    addingMarker = false;
+                    map.off('click', onMapClick);
+                } else {
+                    alert("Please enter a valid YouTube Video ID.");
+                }
+            }
+        }
+
+        function onMarkerClickForRemoval(e) {
+            if (removingMarker) {
+                const marker = e.target;
+                const lat = marker.getLatLng().lat;
+                const lng = marker.getLatLng().lng;
+
+                map.removeLayer(marker);
+
+                fetch('/delete_marker', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ coords: e.latlng, color: color, youtube_link: videoId })
+                    body: JSON.stringify({ lat: lat, lng: lng })
                 }).then(response => response.json())
                   .then(data => {
                       console.log("Server response:", data);
-                      loadMarkers(); // Reload markers from backend after successful addition
+                      loadMarkers(); // Reload markers from backend after successful deletion
                   }).catch(error => {
-                      console.error("Error sending marker data:", error);
+                      console.error("Error deleting marker:", error);
                   });
-
-                addingMarker = false;
-                map.off('click', onMapClick);
-            } else {
-                alert("Please enter a valid YouTube Video ID.");
             }
         }
-    }
 
-    function onMarkerClickForRemoval(e) {
-        if (removingMarker) {
-            const marker = e.target;
-            const lat = marker.getLatLng().lat;
-            const lng = marker.getLatLng().lng;
+        function loadMarkers() {
+            fetch('/get_markers')
+                .then(response => response.json())
+                .then(markers => {
+                    map.eachLayer(layer => {
+                        if (layer instanceof L.CircleMarker) {
+                            map.removeLayer(layer);
+                        }
+                    });
 
-            map.removeLayer(marker);
-
-            fetch('/delete_marker', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lat: lat, lng: lng })
-            }).then(response => response.json())
-              .then(data => {
-                  console.log("Server response:", data);
-                  loadMarkers(); // Reload markers from backend after successful deletion
-              }).catch(error => {
-                  console.error("Error deleting marker:", error);
-              });
+                    markers.forEach(markerData => {
+                        const embedUrl = `https://www.youtube.com/embed/${markerData.youtube_link}`;
+                        let marker = L.circleMarker([markerData.lat, markerData.lng], {
+                            color: markerData.color,
+                            radius: 10
+                        }).addTo(map);
+                        marker.bindPopup(`<iframe width="200" height="150" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`);
+                        marker.on('click', onMarkerClickForRemoval);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error retrieving markers:", error);
+                });
         }
-    }
 
-    function loadMarkers() {
-        fetch('/get_markers')
-            .then(response => response.json())
-            .then(markers => {
-                map.eachLayer(layer => {
-                    if (layer instanceof L.CircleMarker) {
-                        map.removeLayer(layer);
-                    }
-                });
-
-                markers.forEach(markerData => {
-                    const embedUrl = `https://www.youtube.com/embed/${markerData.youtube_link}`;
-                    let marker = L.circleMarker([markerData.lat, markerData.lng], {
-                        color: markerData.color,
-                        radius: 10
-                    }).addTo(map);
-                    marker.bindPopup(`<iframe width="200" height="150" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`);
-                    marker.on('click', onMarkerClickForRemoval);
-                });
-            })
-            .catch(error => {
-                console.error("Error retrieving markers:", error);
-            });
-    }
-
-    loadMarkers();
-</script>
+        loadMarkers();
+    </script>
+</body>
+</html>
