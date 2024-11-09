@@ -18,11 +18,16 @@
             appId: "1:603958099186:web:5783435c75c57114faa46b"
         };
     
-        // Initialize Firebase and make `db` global
         const app = initializeApp(firebaseConfig);
-        window.db = getFirestore(app); // Attach `db` to `window` for global access
+        window.db = getFirestore(app);
     
-        console.log("Firebase initialized, db is globally available");
+        // Dynamically load `script.js` only after Firebase has initialized
+        const script = document.createElement('script');
+        script.src = "/static/script.js";
+        script.type = "module";
+        document.body.appendChild(script);
+    
+        console.log("Firebase initialized, db is globally available, script.js loaded");
     </script>
 
 
@@ -172,6 +177,5 @@
             </table>
         </div>
     </div>
-    <script type="module" src="/static/script.js"></script>
 </body>
 </html>
