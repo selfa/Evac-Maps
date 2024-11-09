@@ -5,12 +5,13 @@ import os
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 
 # Path to the SQLite database
-DATABASE = 'markers.db'
+EVAC_DATABASE = 'markers.db'
+DRAFT_DATABASE = 'app_state.db'
 
-# Function to initialize the database
-def init_db():
-    if not os.path.exists(DATABASE):
-        conn = sqlite3.connect(DATABASE)
+# Function to initialize the evac map database (markers.db)
+def init_evac_db():
+    if not os.path.exists(EVAC_DATABASE):
+        conn = sqlite3.connect(EVAC_DATABASE)
         c = conn.cursor()
         c.execute('''
             CREATE TABLE IF NOT EXISTS markers (
@@ -24,6 +25,23 @@ def init_db():
         conn.commit()
         conn.close()
 
+# Function to initialize the draft map database (app_state.db)
+def init_draft_db():
+    conn = sqlite3.connect(DRAFT_DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS state (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        current_map TEXT,
+                        draft_table_state TEXT,
+                        poi_state TEXT,
+                        order_count INTEGER
+                      )''')
+    conn.commit()
+    conn.close()
+
+# Initialize both databases
+init_evac_db()
+init_draft_db()
 # Front page route
 @app.route('/')
 def front_page():
@@ -44,7 +62,7 @@ def draft_map():
 def add_marker():
     try:
         data = request.json
-        conn = sqlite3.connect(DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE)
         c = conn.cursor()
         c.execute('''
             INSERT INTO markers (lat, lng, color, youtube_link) 
@@ -60,7 +78,7 @@ def add_marker():
 @app.route('/get_markers', methods=['GET'])
 def get_markers():
     try:
-        conn = sqlite3.connect(DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE)
         c = conn.cursor()
         c.execute('SELECT lat, lng, color, youtube_link FROM markers')
         markers = [{'lat': row[0], 'lng': row[1], 'color': row[2], 'youtube_link': row[3]} for row in c.fetchall()]
@@ -77,7 +95,7 @@ def delete_marker():
         lat = data.get('lat')
         lng = data.get('lng')
 
-        conn = sqlite3.connect(DATABASE)
+        conn = sqlite3.connect(EVAC_DATABASE)
         c = conn.cursor()
         c.execute('''
             DELETE FROM markers 
@@ -89,9 +107,57 @@ def delete_marker():
         return jsonify({'status': 'Marker deleted successfully'})
     except Exception as e:
         return jsonify({'status': 'Error deleting marker', 'error': str(e)})
+    
+
+    # New Endpoint to save the state
+@app.route('/saveState', methods=['POST'])
+def save_state():
+    data = request.json
+    current_map = data.get('currentMap', 'stormpoint')
+    draft_table_state = data.get('draftTableState', '[]')
+    poi_state = data.get('poiState', '[]')
+    order_count = data.get('orderCount', 1)
+
+    conn = sqlite3.connect('app_state.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM state')  # Clear old state to store new one
+    cursor.execute('INSERT INTO state (current_map, draft_table_state, poi_state, order_count) VALUES (?, ?, ?, ?)',
+                   (current_map, draft_table_state, poi_state, order_count))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success"}), 201
+
+
+        # New Endpoint to load the state
+@app.route('/loadState', methods=['GET'])
+def load_state():
+    conn = sqlite3.connect('app_state.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT current_map, draft_table_state, poi_state, order_count FROM state ORDER BY id DESC LIMIT 1')
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        current_map, draft_table_state, poi_state, order_count = result
+        return jsonify({
+            "currentMap": current_map,
+            "draftTableState": draft_table_state,
+            "poiState": poi_state,
+            "orderCount": order_count
+        })
+    else:
+        # Return default state if no data found
+        return jsonify({
+            "currentMap": "stormpoint",
+            "draftTableState": "[]",
+            "poiState": "[]",
+            "orderCount": 1
+        })
 
 # Run the Flask app
 if __name__ == '__main__':
-    init_db()  # Initialize the database on startup if it doesn't exist
+    init_evac_db()
+    init_draft_db()  # Initialize the database on startup if it doesn't exist
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
