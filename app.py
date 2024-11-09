@@ -4,8 +4,9 @@ import os
 
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 
-# Path to the SQLite database
-DATABASE = 'markers.db'
+# Use absolute path for the database to ensure it is found regardless of the working directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, 'markers.db')
 
 # Function to initialize the database
 def init_db():
@@ -37,7 +38,6 @@ def index():
 def add_marker():
     try:
         data = request.json
-        print("Received marker data:", data)  # Print incoming data to check
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
         c.execute('''
@@ -60,7 +60,6 @@ def get_markers():
         c.execute('SELECT lat, lng, color, youtube_link FROM markers')
         markers = [{'lat': row[0], 'lng': row[1], 'color': row[2], 'youtube_link': row[3]} for row in c.fetchall()]
         conn.close()
-        print("Retrieved markers:", markers)  # Print retrieved markers to check
         return jsonify(markers)
     except Exception as e:
         print(f"Error in /get_markers: {e}")
@@ -93,4 +92,3 @@ if __name__ == '__main__':
     init_db()  # Initialize the database on startup if it doesn't exist
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
