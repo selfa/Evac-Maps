@@ -176,6 +176,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function removePOI() {
+        const poiList = document.getElementById("poiList");
+        const poiNumber = poiList.value;
+    
+        if (!poiNumber) {
+            alert("Please select a POI to remove.");
+            return;
+        }
+    
+        const poiElement = document.getElementById(`${currentMap}-poi-${poiNumber}`);
+        if (poiElement) {
+            poiElement.style.backgroundColor = "";
+            poiElement.innerHTML = "";
+            
+            const poiTable = document.querySelector("#poiTable tbody");
+            const rows = Array.from(poiTable.rows);
+            const rowToRemove = rows.find(row => row.getAttribute("data-poi") === `${currentMap}-poi-${poiNumber}`);
+            if (rowToRemove) poiTable.deleteRow(rowToRemove.rowIndex);
+    
+            localStorage.removeItem(`draft-${currentMap}-poi-${poiNumber}`);
+            populatePOIList();
+            saveDraftTableState();
+            savePOIState();
+        }
+    }
+    
+
     function pickPOI() {
         const teamName = document.getElementById("teamName").value;
         const poiNumber = poiList.value;
