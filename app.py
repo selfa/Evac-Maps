@@ -37,7 +37,7 @@ def index():
 # Route for the new Draftmap app
 @app.route('/draft-map')
 def draft_map():
-    return render_template('draftmap/draft_index.html')
+    return render_template('draft_index.html')
 
 # Route to add a new marker
 @app.route('/add_marker', methods=['POST'])
