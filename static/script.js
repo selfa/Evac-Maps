@@ -2,7 +2,7 @@ let currentMap = "stormpoint";
 let loggingEnabled = false;
 let orderCount = 1;
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
     const poiNames = {
         stormpoint: [
             "Checkpoint", "Trident", "North Pad", "Downed Beast", "The Mill",
@@ -41,7 +41,10 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     setupEventListeners();
-    loadStateFromAPI();
+    loadCurrentMap();
+    populatePOIList();
+    loadDraftTableState();
+    loadPOIState();
 
     function setupEventListeners() {
         Object.values(maps).forEach(map => map.addEventListener("click", logCoordinates));
@@ -63,10 +66,17 @@ document.addEventListener("DOMContentLoaded", function () {
             option.value = index + 1;
             option.text = name + " #" + (index + 1);
 
-            if (draftTableState.some(entry => entry.dataPoi === `${currentMap}-poi-${index + 1}`)) {
-                option.style.textDecoration = "line-through";
-                option.disabled = true;
-            }
+            // Fetch current draft table state from the backend
+            fetch('/loadDraftTableState')
+                .then(response => response.json())
+                .then(draftTableState => {
+                    if (draftTableState.some(entry => entry.dataPoi === `${currentMap}-poi-${index + 1}`)) {
+                        option.style.textDecoration = "line-through";
+                        option.disabled = true;
+                    }
+                })
+                .catch(error => console.error('Error loading draft table state:', error));
+
             poiList.appendChild(option);
         });
     }
@@ -74,15 +84,44 @@ document.addEventListener("DOMContentLoaded", function () {
     function switchMap(mapId) {
         currentMap = mapId;
 
+        // Hide all maps and POIs
         Object.values(maps).forEach(map => map.style.display = "none");
         Object.values(pois).forEach(poi => poi.style.display = "none");
 
+        // Show selected map and POIs
         maps[currentMap].style.display = "block";
         pois[currentMap].style.display = "block";
 
         populatePOIList();
-        saveStateToAPI();
+        saveCurrentMap();
         loadPOIState();
+    }
+
+    function saveCurrentMap() {
+        fetch('/saveCurrentMap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentMap })
+        }).then(response => response.json())
+          .then(data => console.log('Current map saved:', data))
+          .catch(error => console.error('Error saving current map:', error));
+    }
+
+    function loadCurrentMap() {
+        fetch('/loadCurrentMap')
+            .then(response => response.json())
+            .then(data => {
+                if (data.currentMap && maps[data.currentMap]) {
+                    currentMap = data.currentMap;
+                    switchMap(currentMap);
+                } else {
+                    switchMap('stormpoint');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading current map:', error);
+                switchMap('stormpoint');
+            });
     }
 
     function toggleLogging() {
@@ -112,145 +151,86 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const poiElementId = `${currentMap}-poi-${poiNumber}`;
 
-        if (draftTableState.some(entry => entry.dataPoi === poiElementId)) {
-            alert("This POI has already been picked. Please select another POI.");
-            return;
-        }
+        // Fetch current draft table state from the backend
+        fetch('/loadDraftTableState')
+            .then(response => response.json())
+            .then(draftTableState => {
+                if (draftTableState.some(entry => entry.dataPoi === poiElementId)) {
+                    alert("This POI has already been picked. Please select another POI.");
+                    return;
+                }
 
-        const poiElement = document.getElementById(poiElementId);
+                const poiElement = document.getElementById(poiElementId);
 
-        if (!poiElement) {
-            alert("The POI could not be found.");
-            return;
-        }
+                if (!poiElement) {
+                    alert("The POI could not be found.");
+                    return;
+                }
 
-        if (teamName && poiNumber) {
-            poiElement.style.backgroundColor = "red";
-            poiElement.innerHTML = `${teamName}`;
+                if (teamName && poiNumber) {
+                    poiElement.style.backgroundColor = "red";
+                    poiElement.innerHTML = `${teamName}`;
 
-            const optionToUpdate = poiList.querySelector(`option[value="${poiNumber}"]`);
-            if (optionToUpdate) {
-                optionToUpdate.style.textDecoration = "line-through";
-                optionToUpdate.disabled = true;
-            }
+                    // Update the dropdown option to show it as picked
+                    const optionToUpdate = poiList.querySelector(`option[value="${poiNumber}"]`);
+                    if (optionToUpdate) {
+                        optionToUpdate.style.textDecoration = "line-through";
+                        optionToUpdate.disabled = true;
+                    }
 
-            document.getElementById("teamName").value = "";
+                    document.getElementById("teamName").value = "";
 
-            const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
-            const newRow = poiTable.insertRow();
-            newRow.insertCell(0).innerText = poiList.options[poiList.selectedIndex].text;
-            newRow.insertCell(1).innerText = teamName;
-            newRow.insertCell(2).innerText = orderCount++;
-            newRow.style.backgroundColor = "red";
-            newRow.setAttribute("data-poi", poiElementId);
+                    const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
+                    const newRow = poiTable.insertRow();
+                    newRow.insertCell(0).innerText = poiList.options[poiList.selectedIndex].text;
+                    newRow.insertCell(1).innerText = teamName;
+                    newRow.insertCell(2).innerText = orderCount++;
+                    newRow.style.backgroundColor = "red";
+                    newRow.setAttribute("data-poi", poiElementId);
 
-            saveStateToAPI();
-            savePOIState();
-        } else {
-            alert("Please enter a team name and select a POI.");
-        }
+                    saveDraftTableState();
+                    savePOIState();
+                } else {
+                    alert("Please enter a team name and select a POI.");
+                }
+            })
+            .catch(error => console.error('Error loading draft table state:', error));
     }
 
-    function removePOI() {
-        const poiNumber = poiList.value;
-
-        if (!poiNumber) {
-            alert("Please select a POI to remove.");
-            return;
-        }
-
-        const poiElementId = `${currentMap}-poi-${poiNumber}`;
-        const poiElement = document.getElementById(poiElementId);
-        
-        if (!poiElement) {
-            alert("The POI could not be found.");
-            return;
-        }
-
-        poiElement.style.backgroundColor = "red";
-        poiElement.innerHTML = "";
-
-        const optionToUpdate = poiList.querySelector(`option[value="${poiNumber}"]`);
-        if (optionToUpdate) {
-            optionToUpdate.style.textDecoration = "none";
-            optionToUpdate.disabled = false;
-        }
-
+    function saveDraftTableState() {
         const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
-        const rows = Array.from(poiTable.rows);
-        const rowToDelete = rows.find(row => row.getAttribute("data-poi") === poiElementId);
-        if (rowToDelete) {
-            poiTable.deleteRow(rowToDelete.rowIndex - 1);
-        }
+        const poiTableState = Array.from(poiTable.rows).map(row => ({
+            poi: row.cells[0].innerText,
+            teamName: row.cells[1].innerText,
+            draft: row.cells[2].innerText,
+            dataPoi: row.getAttribute("data-poi")
+        }));
 
-        recalculateDraftNumbers();
-        
-        saveStateToAPI();
-        savePOIState();
-    }
-
-    function saveStateToAPI() {
-        fetch('/saveState', {
+        fetch('/saveDraftTableState', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                currentMap,
-                draftTableState: JSON.stringify(draftTableState),
-                poiState: JSON.stringify(poiNames),
-                orderCount
-            })
+            body: JSON.stringify({ draftTableState: poiTableState })
         }).then(response => response.json())
-          .then(data => console.log('State saved:', data))
-          .catch(error => console.error('Error saving state:', error));
+          .then(data => console.log('Draft table state saved:', data))
+          .catch(error => console.error('Error saving draft table state:', error));
     }
 
-    function loadStateFromAPI() {
-        fetch('/loadState')
+    function loadDraftTableState() {
+        fetch('/loadDraftTableState')
             .then(response => response.json())
             .then(data => {
-                currentMap = data.currentMap;
-                draftTableState = JSON.parse(data.draftTableState);
-                orderCount = data.orderCount;
-                populatePOIList();
-                displayDraftTable();
+                const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
+                poiTable.innerHTML = ""; // Clear existing rows
+
+                data.draftTableState.forEach(entry => {
+                    const newRow = poiTable.insertRow();
+                    newRow.insertCell(0).innerText = entry.poi;
+                    newRow.insertCell(1).innerText = entry.teamName;
+                    newRow.insertCell(2).innerText = entry.draft;
+                    newRow.style.backgroundColor = "red";
+                    newRow.setAttribute("data-poi", entry.dataPoi);
+                });
             })
-            .catch(error => console.error('Error loading state:', error));
-    }
-
-    function resetPOIState() {
-        Object.keys(pois).forEach(mapId => {
-            const poiElements = document.querySelectorAll(`#${mapId}-pois .poi`);
-            poiElements.forEach(poi => {
-                poi.style.backgroundColor = "red";
-                poi.innerHTML = "";
-            });
-        });
-
-        document.getElementById("poiTable").getElementsByTagName('tbody')[0].innerHTML = '';
-        orderCount = 1;
-
-        draftTableState = [];
-        saveStateToAPI();
-    }
-
-    function recalculateDraftNumbers() {
-        const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
-        const rows = poiTable.rows;
-        for (let i = 0; i < rows.length; i++) {
-            rows[i].cells[2].innerText = i + 1;
-        }
-        orderCount = rows.length + 1;
-    }
-
-    function displayDraftTable() {
-        const poiTable = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
-        poiTable.innerHTML = '';
-
-        draftTableState.forEach(entry => {
-            const newRow = poiTable.insertRow();
-            newRow.insertCell(0).innerText = entry.poi;
-            newRow.insertCell(1).innerText = entry.teamName;
-            newRow.insertCell(2).innerText = entry.draft;
-        });
+            .catch(error => console.error('Error loading draft table state:', error));
     }
 });
