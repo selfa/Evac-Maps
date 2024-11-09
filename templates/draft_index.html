@@ -21,14 +21,19 @@
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
     
-        // Dynamically load `script.js` only after Firebase has initialized
-        const script = document.createElement('script');
-        script.src = "/static/script.js";
-        script.type = "module";
-        document.body.appendChild(script);
+        // Callback to load `script.js` only after Firebase initialization is complete
+        function loadScript() {
+            const script = document.createElement('script');
+            script.src = "/static/script.js";
+            script.type = "module";
+            document.body.appendChild(script);
+            console.log("Firebase initialized, script.js loaded after Firebase setup");
+        }
     
-        console.log("Firebase initialized, db is globally available, script.js loaded");
+        // Call the callback function to load `script.js`
+        loadScript();
     </script>
+    
 
 
 
