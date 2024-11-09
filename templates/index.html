@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha384-Lb/s5dJ2gYpqQQ5wRLFdAtUyVZ0rE9PEK6LpYbW3O7+mGJ/xjEhtI82jdE+zFJ5n" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha384-J9w/mTxUZsPz8hgXBRuYrNYBp8QlwPBwzUo0Z5rjzYZqJHzrXCBFOk9RQxjIP9y5" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <title>Evacuation Map</title>
 </head>
 <body>
@@ -16,20 +16,23 @@
         <option value="green">Green</option>
         <option value="yellow">Yellow</option>
     </select>
+
     <script>
-        // Make sure to initialize the map after loading Leaflet
+        // Initialize the Leaflet map
         let map = L.map('map', {
             crs: L.CRS.Simple,
-            minZoom: -4,
+            minZoom: -2,
+            maxZoom: 2,
         });
 
         const bounds = [[0, 0], [1000, 1000]];
-        const image = L.imageOverlay('http://35.228.181.108/static/Flight_map_Edistrict.png', bounds).addTo(map);
+        const image = L.imageOverlay('/static/Flight_map_Edistrict.png', bounds).addTo(map);
         map.fitBounds(bounds);
 
         let addingMarker = false;
         let removingMarker = false;
 
+        // Functions for marker modes
         function startAddingMarker() {
             addingMarker = true;
             removingMarker = false; 
@@ -123,7 +126,7 @@
                 });
         }
 
-        loadMarkers();
+        loadMarkers();  // Load markers when the page loads
     </script>
 </body>
 </html>
