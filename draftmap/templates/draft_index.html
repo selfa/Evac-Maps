@@ -4,9 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POI Draft</title>
+    <script type="text/javascript">
+        const currentMap = "{{ current_map }}";
+        const poiListJson = '{{ poi_list | tojson | safe }}';
+    </script>
+    
+    
+    
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+
 
 </head>
 <body>

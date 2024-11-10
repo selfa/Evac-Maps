@@ -1,4 +1,5 @@
 let currentMap = "stormpoint";
+const poiList = JSON.parse(poiListJson);
 let loggingEnabled = false;
 let orderCount = 1;
 

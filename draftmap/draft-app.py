@@ -1,128 +1,66 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
-import os
+from flask import Flask, render_template, g
 
-app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
+app = Flask(__name__)
+DATABASE = '/home/alexander/evac-maps/draftmap/draftmap.db'
 
-# Path to the SQLite database
-DRAFT_DATABASE = 'app_state.db'
+# Helper functions to interact with the SQLite database
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
 
-# Initialize Draft Map database without affecting the EVAC map database
+def query_db(query, args=(), one=False):
+    cur = get_db().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
 def init_draft_db():
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS maps (name TEXT PRIMARY KEY)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS poilist (id INTEGER PRIMARY KEY, name TEXT, map TEXT)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS drafttable (id INTEGER PRIMARY KEY, poi_id INTEGER, teamname TEXT, pick_order INTEGER)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS poistate (id INTEGER PRIMARY KEY, poi_id INTEGER, state TEXT)''')
-    conn.commit()
-    conn.close()
+    db = get_db()
+    with app.open_resource('schema.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
 
-@app.route('/test-draft-map')
-def test_draft_map():
-    return render_template('draft_index.html')
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
-    # Initialize both databases
-init_draft_db()
-
-
-# Route for the new Draftmap app
+# Route for main page
 @app.route('/draft-map')
 def draft_map():
-    return render_template('draft_index.html')
+    # Load the current map and POI state from the database
+    current_map = query_db('SELECT map_name FROM current_map LIMIT 1', one=True)
+    poi_list = query_db('SELECT poi_name FROM poi_state')
 
+    # Pass data to the template for JavaScript to handle interactions
+    return render_template('draft_index.html', current_map=current_map, poi_list=poi_list)
 
-# New routes for Draft Map only
-@app.route('/api/get_current_map', methods=['GET'])
+# Update and retrieve data directly using SQLite commands
+def set_current_map(map_name):
+    db = get_db()
+    db.execute('UPDATE current_map SET map_name = ? WHERE id = 1', (map_name,))
+    db.commit()
+
 def get_current_map():
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("SELECT name FROM maps LIMIT 1")
-    current_map = c.fetchone()
-    conn.close()
-    return jsonify({'currentMap': current_map[0] if current_map else 'stormpoint'})
+    current_map = query_db('SELECT map_name FROM current_map WHERE id = 1', one=True)
+    return current_map if current_map else "default_map"
 
-@app.route('/api/set_current_map', methods=['POST'])
-def set_current_map():
-    data = request.json
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("DELETE FROM maps")
-    c.execute("INSERT INTO maps (name) VALUES (?)", (data['currentMap'],))
-    conn.commit()
-    conn.close()
-    return jsonify({'status': 'Map updated'})
+def save_draft_table(draft_table):
+    db = get_db()
+    db.executemany('INSERT INTO draft_table (team_name, poi, pick_order) VALUES (?, ?, ?)', draft_table)
+    db.commit()
 
-@app.route('/api/get_poi_list', methods=['GET'])
-def get_poi_list():
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("SELECT id, name FROM poilist WHERE map=?", (request.args.get('map'),))
-    pois = [{'id': row[0], 'name': row[1]} for row in c.fetchall()]
-    conn.close()
-    return jsonify(pois)
-
-@app.route('/api/save_draft_table', methods=['POST'])
-def save_draft_table():
-    data = request.json
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("DELETE FROM drafttable")
-    for entry in data['draftTable']:
-        c.execute("INSERT INTO drafttable (poi_id, teamname, pick_order) VALUES (?, ?, ?)",
-                  (entry['poi_id'], entry['teamName'], entry['pickOrder']))
-    conn.commit()
-    conn.close()
-    return jsonify({'status': 'Draft table saved'})
-
-@app.route('/api/get_draft_table', methods=['GET'])
 def get_draft_table():
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("SELECT poi_id, teamname, pick_order FROM drafttable")
-    draft_table = [{'poi_id': row[0], 'teamName': row[1], 'pickOrder': row[2]} for row in c.fetchall()]
-    conn.close()
-    return jsonify(draft_table)
+    return query_db('SELECT team_name, poi, pick_order FROM draft_table')
 
-@app.route('/api/save_poi_state', methods=['POST'])
-def save_poi_state():
-    data = request.json
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("DELETE FROM poistate")
-    for state in data['poiState']:
-        c.execute("INSERT INTO poistate (poi_id, state) VALUES (?, ?)", (state['poi_id'], state['state']))
-    conn.commit()
-    conn.close()
-    return jsonify({'status': 'POI state saved'})
+def reset_poi_state():
+    db = get_db()
+    db.execute('UPDATE poi_state SET state = 0')
+    db.commit()
 
-@app.route('/api/get_poi_state', methods=['GET'])
 def get_poi_state():
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("SELECT poi_id, state FROM poistate")
-    poi_state = [{'poi_id': row[0], 'state': row[1]} for row in c.fetchall()]
-    conn.close()
-    return jsonify(poi_state)
-
-@app.route('/api/remove_draft_entry', methods=['POST'])
-def remove_draft_entry():
-    poi_id = request.args.get('poi_id')
-    conn = sqlite3.connect('draft_map.db')
-    c = conn.cursor()
-    c.execute("DELETE FROM drafttable WHERE poi_id = ?", (poi_id,))
-    conn.commit()
-    conn.close()
-    return jsonify({'status': 'Entry removed'})
-
-@app.route('/api/test', methods=['GET'])
-def test_route():
-    return jsonify({"status": "API is reachable"})
-
-
-# Run the Flask app
-if __name__ == '__main__':
-    init_draft_db()
-    app.run(host='127.0.0.1', port=8002)
-
-
+    return query_db('SELECT poi_name, state FROM poi_state')
