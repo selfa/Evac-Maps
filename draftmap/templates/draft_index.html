@@ -10,7 +10,7 @@
 
 <h1>Welcome to the Draft Map Page!</h1>
 
-<!-- Map Selector -->
+<!-- Map Selector Buttons -->
 <button id="map1Button">Stormpoint</button>
 <button id="map2Button">World's Edge</button>
 <button id="map3Button">Edistrict</button>
@@ -39,6 +39,11 @@
     <tbody></tbody>
 </table>
 
+<!-- Map Image -->
+<div>
+    <img id="mapImage" src="" alt="Current Map" style="width: 100%; max-height: 500px;">
+</div>
+
 <script type="text/javascript">
     const currentMap = "{{ current_map }}";  // Injected by Flask
     const poiListJson = '{{ poi_list | tojson | safe }}';  // Injected by Flask as JSON
@@ -50,6 +55,24 @@
     // Elements
     const poiDropdown = document.getElementById("poiList");
     const poiTableBody = document.getElementById("poiTable").getElementsByTagName('tbody')[0];
+    const mapImage = document.getElementById("mapImage");
+
+    // Function to update map image based on selected map
+    function updateMapImage() {
+        switch (currentMap) {
+            case "stormpoint":
+                mapImage.src = "/static/stormpoint.png";
+                break;
+            case "worldsedge":
+                mapImage.src = "/static/worldsedge.png";
+                break;
+            case "edistrict":
+                mapImage.src = "/static/edistrict.png";
+                break;
+            default:
+                mapImage.src = "/static/stormpoint.png";  // Default to Stormpoint if no map selected
+        }
+    }
 
     // Populate the POI dropdown list
     function populatePOIList() {
@@ -66,56 +89,17 @@
     function switchMap(mapId) {
         currentMap = mapId;
         populatePOIList();
-    }
-
-    // Toggle logging
-    function toggleLogging() {
-        loggingEnabled = !loggingEnabled;
-        alert(loggingEnabled ? "Logging enabled" : "Logging disabled");
-    }
-
-    // Pick a POI and add it to the draft table
-    function pickPOI() {
-        const teamName = document.getElementById("teamName").value;
-        const poiNumber = poiDropdown.value;
-        if (!poiNumber || !teamName) {
-            alert("Please enter a team name and select a POI.");
-            return;
-        }
-
-        const newRow = poiTableBody.insertRow();
-        newRow.insertCell(0).innerText = poiDropdown.options[poiNumber - 1].text;
-        newRow.insertCell(1).innerText = teamName;
-        newRow.insertCell(2).innerText = orderCount++;
-    }
-
-    // Remove a POI from the draft table
-    function removePOI() {
-        const poiNumber = poiDropdown.value;
-        if (!poiNumber) {
-            alert("Please select a POI to remove.");
-            return;
-        }
-
-        for (let row of poiTableBody.rows) {
-            if (row.cells[0].innerText.includes(poiDropdown.options[poiNumber - 1].text)) {
-                row.remove();
-                break;
-            }
-        }
-    }
-
-    // Reset POIs and team selections
-    function resetPOIState() {
-        if (confirm("Are you sure you want to reset everything?")) {
-            poiTableBody.innerHTML = '';  // Clear table
-            orderCount = 1;
-            populatePOIList();
-        }
+        updateMapImage();
     }
 
     // Initialize the map and POI list
     populatePOIList();
+    updateMapImage();  // Set the default map image on page load
+
+    // Switch map on button click
+    document.getElementById("map1Button").addEventListener("click", () => switchMap("stormpoint"));
+    document.getElementById("map2Button").addEventListener("click", () => switchMap("worldsedge"));
+    document.getElementById("map3Button").addEventListener("click", () => switchMap("edistrict"));
 </script>
 
 <script src="/static/script.js"></script>
