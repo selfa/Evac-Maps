@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POI Draft</title>
     <link rel="stylesheet" href="/home/alexander/evac-maps/draftmap/static/styles.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-<script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </head>
 <body>
@@ -59,7 +57,7 @@
             <button id="toggleLoggingButton">Toggle Coordinate Logging</button>
         </div>
         <div class="map-container">
-            <img src="/home/alexander/evac-maps/draftmap/static/stormpoint.png" alt="Map" class="map" id="map1">
+            <img src="/static/stormpoint.png" alt="Map" class="map" id="map1">
             <div id="stormpoint-pois">
                 <div class="poi" id="stormpoint-poi-1">1 - Checkpoint</div>
                 <div class="poi" id="stormpoint-poi-2">2 - Trident</div>
@@ -86,7 +84,7 @@
                 <div class="poi" id="stormpoint-poi-23">23 - Cascade Balls</div>
             </div>
 
-            <img src="/home/alexander/evac-maps/draftmap/static/worldsedge.png" alt="Map" class="map" id="map2" style="display: none;">
+            <img src="/static/worldsedge.png" alt="Map" class="map" id="map2" style="display: none;">
             <div id="worldsedge-pois" style="display: none;">
                 <div class="poi" id="worldsedge-poi-1">1 - Sky West</div>
                 <div class="poi" id="worldsedge-poi-2">2 - Sky East</div>
@@ -112,7 +110,7 @@
                 <div class="poi" id="worldsedge-poi-22">22 - Overlook</div>
             </div>
 
-            <img src="/home/alexander/evac-maps/draftmap/static/edistrict.png" alt="Map" class="map" id="map3" style="display: none;">
+            <img src="/static/edistrict.png" alt="Map" class="map" id="map3" style="display: none;">
             <div id="edistrict-pois" style="display: none;">
                 <div class="poi" id="edistrict-poi-1">1 - Resort</div>
                 <div class="poi" id="edistrict-poi-2">2 - The Lotus</div>
@@ -153,6 +151,6 @@
             </table>
         </div>
     </div>
-    <script src="/home/alexander/evac-maps/draftmap/static/script.js"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
