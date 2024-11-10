@@ -7,8 +7,8 @@ app = Flask(__name__, static_folder='/static', template_folder='/templates')
 
 # Route for the new Draftmap app
 @app.route('/draft-map')
-def draft_map():
-    return render_template('/draft_index.html')
+def show_draft_map():
+    return render_template('draft_index.html')
 
 
 # Run the Flask app
