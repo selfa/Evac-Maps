@@ -2,12 +2,12 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
 import os
 
-app = Flask(__name__, static_folder='/home/alexander/evac-maps/draftmap/static', template_folder='/home/alexander/evac-maps/draftmap/templates')
+app = Flask(__name__, static_folder=None, template_folder='/home/alexander/evac-maps/draftmap/templates')
 
 
 # Route for the new Draftmap app
 @app.route('/draft-map')
-def show_draft_map():
+def draft_map():
     return render_template('draft_index.html')
 
 

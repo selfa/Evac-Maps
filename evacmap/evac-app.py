@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
 import os
 
-app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
+app = Flask(__name__, static_folder=None, template_folder='templates')
 
 # Path to the SQLite database
 EVAC_DATABASE = '/home/alexander/evac-maps/evacmap/markers.db'
