@@ -119,7 +119,7 @@ def test_route():
 
 # Run the Flask app
 if __name__ == '__main__':
-    init_draft_db()  # Initialize the database on startup if it doesn't exist
-    port = int(os.environ.get('PORT', 5002))
-    app.run(port=port)  # Remove host='0.0.0.0'
+    init_draft_db()
+    app.run(host='127.0.0.1', port=8002)
+
 
