@@ -18,6 +18,9 @@ def init_draft_db():
     conn.commit()
     conn.close()
 
+@app.route('/test-draft-map')
+def test_draft_map():
+    return render_template('draft_index.html')
 
     # Initialize both databases
 init_draft_db()
