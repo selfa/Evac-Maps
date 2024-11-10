@@ -1,64 +1,33 @@
-import sqlite3
-from flask import Flask, render_template, g
+from flask import Flask, render_template
+import json
 
 app = Flask(__name__)
-DATABASE = '/home/alexander/evac-maps/draftmap/draftmap.db'
 
-# Helper functions to interact with the SQLite database
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-    return db
+# Define POIs for each map
+poi_data = {
+    "stormpoint": [
+        "Checkpoint", "Trident", "North Pad", "Downed Beast", "The Mill", "Bean", "Cenote Cave", "Barometer",
+        "Ceto Station", "Cascades Falls", "Command Center", "The Wall", "Zeus Station", "Lightning Rod", "Hillside",
+        "Storm Catcher", "Launch Pad", "Devastated Coast", "Echo HQ", "Coastal Camp", "The Pylon", "Jurassic", "Cascade Balls"
+    ],
+    "worldsedge": [
+        "Sky West", "Sky East", "Countdown", "Lava Fissure", "Landslide", "Mirage", "Staging", "Thermal", "Harvester",
+        "The Tree", "Lava Siphon", "Launch Site", "The Dome", "Stacks", "Big Maude", "The Geyser", "Fragment East",
+        "Monument", "Survey Camp", "The Epicenter", "Climatizer", "Overlook"
+    ],
+    "edistrict": [
+        "Resort", "The Lotus", "Electro Dam", "Boardwalk", "City Hall", "Riverside", "Galleria", "Angels Atrium",
+        "Heights", "Blossom Drive", "Neon Square", "Energy Bank", "Stadium West", "Stadium North", "Stadium South",
+        "Street Market", "Street Market Grief", "Viaduct", "Draft Point", "Is this a POI?", "Shipyard Arcade",
+        "Humbert Labs", "Old Town"
+    ]
+}
 
-def query_db(query, args=(), one=False):
-    cur = get_db().execute(query, args)
-    rv = cur.fetchall()
-    cur.close()
-    return (rv[0] if rv else None) if one else rv
-
-def init_draft_db():
-    db = get_db()
-    with app.open_resource('schema.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
-    db.commit()
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-# Route for main page
 @app.route('/draft-map')
 def draft_map():
-    current_map = "stormpoint"  # Example starting map, could be dynamic
-    poi_list = ["Checkpoint", "Trident", "North Pad", "Downed Beast"]  # Example POIs
+    current_map = "stormpoint"  # You can dynamically set this value based on user input or a default value
+    poi_list = poi_data.get(current_map, [])
     return render_template('draft_index.html', current_map=current_map, poi_list=poi_list)
 
-
-# Update and retrieve data directly using SQLite commands
-def set_current_map(map_name):
-    db = get_db()
-    db.execute('UPDATE current_map SET map_name = ? WHERE id = 1', (map_name,))
-    db.commit()
-
-def get_current_map():
-    current_map = query_db('SELECT map_name FROM current_map WHERE id = 1', one=True)
-    return current_map if current_map else "default_map"
-
-def save_draft_table(draft_table):
-    db = get_db()
-    db.executemany('INSERT INTO draft_table (team_name, poi, pick_order) VALUES (?, ?, ?)', draft_table)
-    db.commit()
-
-def get_draft_table():
-    return query_db('SELECT team_name, poi, pick_order FROM draft_table')
-
-def reset_poi_state():
-    db = get_db()
-    db.execute('UPDATE poi_state SET state = 0')
-    db.commit()
-
-def get_poi_state():
-    return query_db('SELECT poi_name, state FROM poi_state')
+if __name__ == '__main__':
+    app.run(debug=True, host='127.0.0.1', port=8002)
