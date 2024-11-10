@@ -26,6 +26,7 @@ init_draft_db()
 # Route for the new Draftmap app
 @app.route('/draft-map')
 def draft_map():
+    return "Welcome to the Draft Map Page!"
     return render_template('draft_index.html')
 
 
