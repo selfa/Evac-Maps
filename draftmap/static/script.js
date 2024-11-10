@@ -1,3 +1,6 @@
+const poiList = JSON.parse(poiListJson);
+const currentMap = currentMap;
+
 // Centralized list of all POIs by map
 const poiNames = {
     stormpoint: [
@@ -26,10 +29,6 @@ const poiNames = {
 let loggingEnabled = false;
 let orderCount = 1;
 
-// Load initial map and POI list based on the current map set by Flask
-let currentMap = currentMap; // Assume this is preloaded by Flask
-let poiList = poiNames[currentMap]; // Initialize based on current map
-
 document.addEventListener("DOMContentLoaded", function () {
     // Define map elements for each map
     const poiDropdown = document.getElementById("poiList");
@@ -38,7 +37,22 @@ document.addEventListener("DOMContentLoaded", function () {
         worldsedge: document.getElementById("map2"),
         edistrict: document.getElementById("map3")
     };
-
+    document.addEventListener("DOMContentLoaded", function () {
+        const poiDropdown = document.getElementById("poiList");
+    
+        // Populate the POI dropdown with the list provided by Flask
+        function populatePOIList() {
+            poiDropdown.innerHTML = '<option value="" disabled selected>Select POI</option>';
+            poiList.forEach((poi, index) => {
+                let option = document.createElement("option");
+                option.value = index + 1;
+                option.text = poi;
+                poiDropdown.appendChild(option);
+            });
+        }
+    
+        populatePOIList(); // Populate dropdown on page load
+    });
     // Initial setup
     setupEventListeners();
     switchMap(currentMap); // Load the map set on initial page load

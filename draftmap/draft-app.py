@@ -32,12 +32,10 @@ def close_connection(exception):
 # Route for main page
 @app.route('/draft-map')
 def draft_map():
-    # Load the current map and POI state from the database
-    current_map = query_db('SELECT map_name FROM current_map LIMIT 1', one=True)
-    poi_list = query_db('SELECT poi_name FROM poi_state')
-
-    # Pass data to the template for JavaScript to handle interactions
+    current_map = "stormpoint"  # Example starting map, could be dynamic
+    poi_list = ["Checkpoint", "Trident", "North Pad", "Downed Beast"]  # Example POIs
     return render_template('draft_index.html', current_map=current_map, poi_list=poi_list)
+
 
 # Update and retrieve data directly using SQLite commands
 def set_current_map(map_name):
