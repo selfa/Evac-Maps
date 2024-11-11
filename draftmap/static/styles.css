@@ -66,6 +66,7 @@ body {
     padding: 0px;  
     background-color: #333;
     border: 2px solid #444;
+    color: #e0e0e0;
 }
 
 .top-buttons {
@@ -99,7 +100,7 @@ body {
 
 .poi {
     position: absolute;
-    background-color: rgba(255, 0, 0, 0.8);
+    background-color: rgba(100, 44, 44, 0.8);
     color: white;
     padding: 0px 2px;
     border-radius: 5px;
