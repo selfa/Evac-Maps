@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Image to Google Cloud Storage</title>
+  <title>Upload Image</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,59 +14,127 @@
       align-items: center;
       height: 100vh;
     }
-    input[type="file"] {
-      margin: 20px;
+    form {
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
     }
-    button {
+    input[type="file"], input[type="text"] {
       background-color: #444;
-      color: #fff;
-      padding: 10px 20px;
       border: none;
+      padding: 10px;
+      margin: 10px 0;
       cursor: pointer;
+      color: white;
+      width: 100%;
     }
-    button:hover {
+    input[type="submit"] {
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      width: 100%;
+    }
+    input[type="submit"]:hover {
       background-color: #555;
+    }
+    h1 {
+      text-align: center;
+      color: #fff;
+    }
+    .feedback {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    #imagePreview {
+      display: block;
+      margin: 20px auto;
+      max-width: 100%;
+      max-height: 300px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      object-fit: contain;
     }
   </style>
 </head>
 <body>
   <div>
-    <input type="file" id="fileInput" accept="image/*">
-    <button onclick="uploadImage()">Upload Image</button>
+    <h1>Upload an Image</h1>
+    <form id="uploadForm" method="POST" enctype="multipart/form-data">
+      <label for="file">Choose an image to upload:</label><br>
+      <input type="file" name="file" id="file" accept="image/*" onchange="previewImage()" required><br>
+      
+      <!-- Input for custom file name -->
+      <label for="filename">Enter a custom name for the image:</label><br>
+      <input type="text" id="filename" name="filename" placeholder="Enter custom file name"><br>
+
+      <img id="imagePreview" src="#" alt="Image Preview" style="display: none;">
+      <input type="submit" value="Upload Image">
+    </form>
+    
+    <div id="feedback" class="feedback"></div>
   </div>
 
   <script>
-    async function uploadImage() {
-      const fileInput = document.getElementById("fileInput");
-      const file = fileInput.files[0];
-      if (!file) {
-        alert("Please select an image to upload.");
-        return;
-      }
+    // Image preview function
+    function previewImage() {
+      const file = document.getElementById("file").files[0];
+      const reader = new FileReader();
 
-      // Step 1: Get a signed URL from the Flask back-end
-      const response = await fetch('/getSignedUrl', { method: 'GET' });
-      const { signedUrl } = await response.json();
+      reader.onload = function (e) {
+        const preview = document.getElementById("imagePreview");
+        preview.src = e.target.result;
+        preview.style.display = "block";  // Show the image preview
+      };
 
-      if (signedUrl) {
-        // Step 2: Upload the image to Google Cloud Storage using the signed URL
-        const uploadResponse = await fetch(signedUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': file.type
-          },
-          body: file
-        });
-
-        if (uploadResponse.ok) {
-          alert('Image uploaded successfully!');
-        } else {
-          alert('Failed to upload image.');
-        }
-      } else {
-        alert('Failed to get signed URL.');
+      if (file) {
+        reader.readAsDataURL(file);
       }
     }
+
+    // Handle form submission and feedback
+    document.getElementById("uploadForm").onsubmit = async function(event) {
+      event.preventDefault(); // Prevent form from submitting the normal way
+
+      const formData = new FormData(this);
+      const feedback = document.getElementById("feedback");
+      const submitButton = event.target.querySelector('input[type="submit"]');
+      
+      // Disable submit button while uploading
+      submitButton.disabled = true;
+      feedback.textContent = "Uploading...";
+
+      try {
+        // Submit the form data using Fetch API
+        const response = await fetch('/random', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const result = await response.text(); // The server response (success message)
+          feedback.textContent = result;
+          feedback.className = "success"; // Show success message
+        } else {
+          feedback.textContent = "Error uploading file.";
+          feedback.className = "error"; // Show error message
+        }
+      } catch (error) {
+        feedback.textContent = "Failed to upload. Please try again.";
+        feedback.className = "error"; // Show error message
+      }
+
+      // Re-enable submit button after the upload process
+      submitButton.disabled = false;
+    };
   </script>
 </body>
 </html>

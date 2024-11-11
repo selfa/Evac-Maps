@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for
 import os
 
-# Initialize the Flask app
+# Initialize Flask app
 app = Flask(__name__)
 
 # Set the folder where uploaded images will be stored
@@ -16,7 +16,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Route to display the upload form and handle file uploads
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/random', methods=['GET', 'POST'])
 def upload_image():
     if request.method == 'POST':
         # Check if the post request has the file part
@@ -35,6 +35,7 @@ def upload_image():
             file.save(filepath)  # Save the file locally
             return f"File uploaded successfully: {filepath}", 200
 
+        return "Invalid file format. Please upload an image.", 400
 
     # If the request is GET, render the upload form
     return render_template('random.html')
