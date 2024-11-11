@@ -112,11 +112,6 @@ body {
     cursor: pointer;
 }
 
-.poiTable {
-    background-color: rgba(100, 44, 44, 0.8);
-    color: white;
-}
-
 #stormpoint-poi-1 { top: 300px; left: 265px; }
 #stormpoint-poi-2 { top: 215px; left: 335px; }
 #stormpoint-poi-3 { top: 135px; left: 220px; }
