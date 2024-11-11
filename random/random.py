@@ -1,21 +1,21 @@
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for
 import os
 
-# Initialize Flask app
+# Initialize the Flask app
 app = Flask(__name__)
 
-# Set upload folder and allowed extensions
-UPLOAD_FOLDER = 'uploads'  # This is where the images will be stored
+# Set the folder where uploaded images will be stored
+UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}  # Allowable file extensions
 
-# Check if the file extension is allowed
+# Make sure the upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Check if the file has a valid extension
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Ensure the upload folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# Route for handling image upload
+# Route to display the upload form and handle file uploads
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_image():
     if request.method == 'POST':
@@ -35,16 +35,10 @@ def upload_image():
             file.save(filepath)  # Save the file locally
             return f"File uploaded successfully: {filepath}", 200
 
-    # If the request is GET, render a simple HTML form
-    return '''
-    <!doctype html>
-    <title>Upload an Image</title>
-    <h1>Upload an Image</h1>
-    <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="Upload">
-    </form>
-    '''
 
+    # If the request is GET, render the upload form
+    return render_template('random.html')
+
+# Main entry point
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8006)
