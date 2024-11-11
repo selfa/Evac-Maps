@@ -36,17 +36,12 @@ def front_page():
 # Front page route
 @app.route('/cca')
 def front_page():
-    return render_template('front_page.html')
+    return render_template('cca.html')
 
 # Front page route
-@app.route('/loothpath')
+@app.route('/lootpath')
 def front_page():
     return render_template('lootpath.html')
-
-# Front page route
-@app.route('/random')
-def front_page():
-    return render_template('random.html')
 
 
 # Route to the evacuation map app
