@@ -69,6 +69,25 @@ body {
     color: #e0e0e0;
 }
 
+#poiTable {
+    background-color: #1e1e1e; 
+    color: #e0e0e0; 
+    border: 2px solid #444; 
+}
+
+#poiTable th {
+    background-color: #333; 
+    color: #e0e0e0; 
+    border-bottom: 2px solid #444; 
+}
+
+#poiTable td {
+    background-color: #2b2b2b; 
+    color: #e0e0e0; 
+    border: 1px solid #444;
+    padding: 8px;
+}
+
 .top-buttons {
     flex: 1;
     background-color: #333;
@@ -98,10 +117,6 @@ body {
     height: auto;
 }
 
-#poi-table-container {
-    background-color: #333;
-    color: #e0e0e0;
-}
 .poi {
     position: absolute;
     background-color: rgba(100, 44, 44, 0.8);
