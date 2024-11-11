@@ -1,8 +1,6 @@
-# lootpath.py
-
 from flask import Flask, render_template
 
-app = Flask(__name__, static_folder=None, template_folder='templates')
+app = Flask(__name__, static_folder='static')
 
 @app.route('/lootpath')
 def lootpath_page():
