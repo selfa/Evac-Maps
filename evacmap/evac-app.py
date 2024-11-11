@@ -35,12 +35,12 @@ def front_page():
 
 # Front page route
 @app.route('/cca')
-def front_page():
+def cca():
     return render_template('cca.html')
 
 # Front page route
 @app.route('/lootpath')
-def front_page():
+def lootpath():
     return render_template('lootpath.html')
 
 
