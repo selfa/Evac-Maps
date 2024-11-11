@@ -66,7 +66,7 @@
     }
     .image-list {
       margin-top: 30px;
-      max-height: 550px;
+      max-height: 300px;
       overflow-y: auto;
       width: 400px;
     }
@@ -159,8 +159,9 @@
       <h3>Uploaded Images</h3>
       {% for image in images %}
         <div class="image-item">
-          <!-- Clicking image name shows image in modal -->
+          <!-- Display image with filename -->
           <img src="{{ url_for('uploaded_file', filename=image) }}" alt="{{ image }}" width="100" onclick="showImageModal('{{ url_for('uploaded_file', filename=image) }}')">
+          <span>{{ image }}</span> <!-- Show the filename next to the image -->
           <form action="{{ url_for('delete_image', filename=image) }}" method="POST" style="display:inline;">
             <button type="submit">Delete</button>
           </form>
