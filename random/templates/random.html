@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Image to Google Cloud Storage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #181818;
+      color: #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    input[type="file"] {
+      margin: 20px;
+    }
+    button {
+      background-color: #444;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="uploadImage()">Upload Image</button>
+  </div>
+
+  <script>
+    async function uploadImage() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select an image to upload.");
+        return;
+      }
+
+      // Step 1: Get a signed URL from the Flask back-end
+      const response = await fetch('/getSignedUrl', { method: 'GET' });
+      const { signedUrl } = await response.json();
+
+      if (signedUrl) {
+        // Step 2: Upload the image to Google Cloud Storage using the signed URL
+        const uploadResponse = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type
+          },
+          body: file
+        });
+
+        if (uploadResponse.ok) {
+          alert('Image uploaded successfully!');
+        } else {
+          alert('Failed to upload image.');
+        }
+      } else {
+        alert('Failed to get signed URL.');
+      }
+    }
+  </script>
+</body>
+</html>

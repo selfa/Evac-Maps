@@ -33,7 +33,6 @@ init_evac_db()
 def front_page():
     return render_template('front_page.html')
 
-
 # Route to the evacuation map app
 @app.route('/evac-map')
 def index():
