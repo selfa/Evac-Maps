@@ -6,24 +6,191 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <title>Evacuation Map</title>
-    <style>
-      /*/
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-        #map {
-            width: 100%;
-            height: 600px;
-            background-color: #2e2e2e;
-        }
-        button, select, input[type="text"] {
-            background-color: #333;
-            color: #e0e0e0;
-            border: 1px solid #444;
-            margin: 5px;
-            padding: 5px;
-        }/*/
+<style>
+    /* General page background and text colors */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #121212; /* Dark background for body */
+        color: #e0e0e0; /* Light text color */
+    }
+
+    /* Dark mode for the map container */
+    #map {
+        border: 2px solid #444; /* Border to match the other borders in the website */
+    }
+
+    /* Styling buttons */
+    button {
+        background-color: #333; /* Dark button background */
+        color: #e0e0e0; /* Light text color */
+        border: 1px solid #444; /* Matching border */
+        padding: 10px 15px;
+        margin: 5px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #555; /* Slightly lighter color when hovered */
+    }
+
+    /* Specific buttons with unique background color */
+    #resetButton {
+        margin-top: 5px;
+        padding: 0px;
+        background-color: #ff6666; /* Specific color for reset button */
+        color: #e0e0e0;
+    }
+
+    /* Styling input fields */
+    input[type="text"] {
+        background-color: #333; /* Dark background for input fields */
+        color: #e0e0e0; /* Light text color */
+        border: 1px solid #444;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 5px;
+    }
+
+    /* Styling select dropdown */
+    select {
+        background-color: #333; /* Dark background for select */
+        color: #e0e0e0; /* Light text color */
+        border: 1px solid #444;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 5px;
+    }
+
+    /* Popup iframe (YouTube) adjustments */
+    .leaflet-popup-content iframe {
+        border: 2px solid #444; /* Border around the iframe to match dark mode */
+    }
+
+    /* Dark mode for Leaflet control elements (zoom controls, etc.) */
+    .leaflet-control {
+        background-color: #333 !important; /* Dark background for leaflet controls */
+        color: #e0e0e0 !important; /* Light text color */
+        border: 1px solid #444 !important;
+    }
+
+    .leaflet-control a {
+        color: #e0e0e0 !important; /* Light color for leaflet control links */
+    }
+
+    /* Leaflet map layer adjustments */
+    .leaflet-container {
+        background: #1e1e1e; /* Dark background for map tiles that haven't loaded */
+    }
+
+    /* Sidebar styling */
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+        background-color: #1e1e1e; /* Sidebar background */
+        border: 2px solid #444;
+        width: 200px;
+        color: #e0e0e0;
+    }
+
+    /* POI styling */
+    .poi {
+        position: absolute;
+        background-color: rgba(100, 44, 44, 0.8);
+        color: white;
+        padding: 0px 2px;
+        border-radius: 5px;
+        text-align: center;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    /* Map button styling */
+    #removeButton, #teamName, #map3Button, #map2Button, #map1Button, #pickButton, #poiList {
+        margin-top: 5px;
+        padding: 0px;
+        background-color: #333; /* Match with general button styles */
+        color: #e0e0e0;
+        border-bottom: 1px solid #444;
+    }
+
+    /* POI table styling */
+    #poiTable {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border: 2px solid #444;
+    }
+
+    #poiTable th {
+        background-color: #333;
+        color: #e0e0e0;
+        border-bottom: 2px solid #444;
+    }
+
+    #poiTable td {
+        background-color: #2b2b2b;
+        color: #e0e0e0;
+        border: 1px solid #444;
+        padding: 8px;
+    }
+
+    /* Table styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #444;
+        padding: 8px;
+        text-align: left;
+        color: #e0e0e0;
+    }
+
+    th {
+        background-color: #333;
+    }
+
+    /* POI table container */
+    .poi-table-container {
+        padding: 0px;
+        margin-left: 5px;
+    }
+
+    /* Map container styling */
+    .map-container {
+        position: relative;
+        margin-left: 5px;
+    }
+
+    .map {
+        width: 800px;
+        height: auto;
+    }
+
+    /* Top buttons styling */
+    .top-buttons {
+        flex: 1;
+        background-color: #333;
+        color: #e0e0e0;
+    }
+
+    /* Toggle Logging Button */
+    #toggleLoggingButton {
+        margin-top: auto;
+        background-color: #333;
+        color: #e0e0e0;
+        border: 1px solid #444;
+    }
+</style>
+
+
+
     </style>
 </head>
 <body>
