@@ -33,6 +33,22 @@ init_evac_db()
 def front_page():
     return render_template('front_page.html')
 
+# Front page route
+@app.route('/cca')
+def front_page():
+    return render_template('front_page.html')
+
+# Front page route
+@app.route('/loothpath')
+def front_page():
+    return render_template('lootpath.html')
+
+# Front page route
+@app.route('/random')
+def front_page():
+    return render_template('random.html')
+
+
 # Route to the evacuation map app
 @app.route('/evac-map')
 def index():
