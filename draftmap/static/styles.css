@@ -12,6 +12,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 5px;
+    border-radius: 10px;
     background-color: #1e1e1e;
     border: 2px solid #444;
     width: 200px;
@@ -20,7 +21,7 @@ body {
 #map3Button  {
     margin-top: 5px;
     padding: 0px;  
-    border-bottom: 1px solid #444;
+    border-bottom: 2px solid #444;
 }
 
 #teamName   {
@@ -31,7 +32,7 @@ body {
 #pickButton {
     margin-top: 5px;
     padding: 0px;  
-    border-bottom: 1px solid #444;
+    border-bottom: 2px solid #444;
 }
 
 #poiList    {
