@@ -6,6 +6,25 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <title>Evacuation Map</title>
+    <style>
+        /* Dark mode styles */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+            background-color: #2e2e2e;
+        }
+        button, select, input[type="text"] {
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
 </head>
 <body>
     <div id="map" style="width: 100%; height: 600px;"></div>
