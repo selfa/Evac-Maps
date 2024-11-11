@@ -12,7 +12,6 @@ body {
     display: flex;
     flex-direction: column;
     padding: 5px;
-    border-radius: 10px;
     background-color: #1e1e1e;
     border: 2px solid #444;
     width: 200px;
