@@ -50,12 +50,12 @@ def upload_image():
     return render_template('random.html', images=image_list)
 
 # Route to view the uploaded image
-@app.route('/uploads/<filename>')
+@app.route('/random/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
 # Route to delete an image
-@app.route('/delete/<filename>', methods=['POST'])
+@app.route('/random/delete/<filename>', methods=['POST'])
 def delete_image(filename):
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     if os.path.exists(filepath):
