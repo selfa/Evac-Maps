@@ -2,11 +2,11 @@
 
 from flask import Flask, render_template
 
-lootpath = Flask(__name__)
+app = Flask(__name__, static_folder=None, template_folder='templates')
 
-@lootpath.route('/lootpath')
+@app.route('/lootpath')
 def lootpath_page():
     return render_template('lootpath.html')
 
 if __name__ == '__main__':
-    lootpath.run(debug=True, host='0.0.0.0', port=8003)
+    app.run(debug=True, host='0.0.0.0', port=8003)
