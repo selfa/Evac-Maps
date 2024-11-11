@@ -21,7 +21,7 @@ body {
 #map3Button  {
     margin-top: 5px;
     padding: 0px;  
-    border-radius: 5px;
+    background-color: #333;
     border-bottom: 1px solid #444;
 }
 
@@ -33,7 +33,7 @@ body {
 #pickButton {
     margin-top: 5px;
     padding: 0px;  
-    border-radius: 5px;
+    background-color: #333;
     border-bottom: 1px solid #444;
 }
 
@@ -44,6 +44,7 @@ body {
 
 .top-buttons {
     flex: 1;
+    background-color: #333;
 }
 
 #resetButton {
