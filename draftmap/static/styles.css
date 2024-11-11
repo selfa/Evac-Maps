@@ -16,6 +16,11 @@ body {
     border: 2px solid #444;
     width: 200px;
 }
+#removeButton  { 
+    background-color: #333;
+    color: #e0e0e0;
+    border-bottom: 1px solid #444;
+}
 
 #map3Button  {
     margin-top: 5px;
@@ -51,6 +56,8 @@ body {
 #poiList    {
     margin-top: 5px;
     padding: 0px;  
+    background-color: #1e1e1e;
+    border: 2px solid #444;
 }
 
 .top-buttons {
