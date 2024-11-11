@@ -11,8 +11,9 @@
       color: #ddd;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       height: 100vh;
+      padding: 20px;
     }
     form {
       background-color: #333;
@@ -63,6 +64,33 @@
       border-radius: 8px;
       object-fit: contain;
     }
+    .image-list {
+      margin-top: 30px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .image-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #444;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .image-item:hover {
+      background-color: #555;
+    }
+    .image-item button {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
+    .image-item button:hover {
+      background-color: #e53935;
+    }
   </style>
 </head>
 <body>
@@ -79,8 +107,22 @@
       <img id="imagePreview" src="#" alt="Image Preview" style="display: none;">
       <input type="submit" value="Upload Image">
     </form>
-    
+
     <div id="feedback" class="feedback"></div>
+
+    <div class="image-list">
+      <h3>Uploaded Images</h3>
+      {% for image in images %}
+        <div class="image-item">
+          <a href="{{ url_for('uploaded_file', filename=image) }}" target="_blank">{{ image }}</a>
+          <form action="{{ url_for('delete_image', filename=image) }}" method="POST" style="display:inline;">
+            <button type="submit">Delete</button>
+          </form>
+        </div>
+      {% else %}
+        <p>No images uploaded yet.</p>
+      {% endfor %}
+    </div>
   </div>
 
   <script>
