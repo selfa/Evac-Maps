@@ -21,6 +21,18 @@ body {
 #map3Button  {
     margin-top: 5px;
     padding: 0px;  
+    background-color: #333;
+    color: #e0e0e0;
+    border-bottom: 1px solid #444;
+}
+#map2Button  {
+    background-color: #333;
+    color: #e0e0e0;
+    border-bottom: 1px solid #444;
+}
+#map1Button  {
+    background-color: #333;
+    color: #e0e0e0;
     border-bottom: 1px solid #444;
 }
 
@@ -32,6 +44,8 @@ body {
 #pickButton {
     margin-top: 5px;
     padding: 0px;  
+    background-color: #333;
+    color: #e0e0e0;
     border-bottom: 1px solid #444;
 }
 
@@ -42,6 +56,8 @@ body {
 
 .top-buttons {
     flex: 1;
+    background-color: #333;
+    color: #e0e0e0;
 }
 
 #resetButton {
